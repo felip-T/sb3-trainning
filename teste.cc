@@ -29,7 +29,6 @@ void
 reportAppLoss(Ptr<OranDataRepository> db)
 {
     static double total = 0;
-    std::cout << "-----___>HERE" << std::endl;
     if (db->IsActive())
     {
         double avg = 0;
@@ -214,8 +213,6 @@ TracePositions(NodeContainer nodes)
         posOutFile << " " << pos.x << " " << pos.y;
     }
     posOutFile << std::endl;
-
-    Simulator::Schedule(Seconds(1), &TracePositions, nodes);
 }
 
 void
@@ -236,7 +233,7 @@ main(int argc, char* argv[])
     double lmQueryInterval = 1;
     double txDelay = 0;
     std::string handoverAlgorithm = "ns3::NoOpHandoverAlgorithm";
-    Time simTime = Seconds(20);
+    Time simTime = Seconds(25);
     std::string dbFileName = "oran-repository.db";
     bool plt = false;
 
@@ -474,7 +471,7 @@ main(int argc, char* argv[])
                                             InetSocketAddress(Ipv4Address::GetAny(), port));
         ueApps.Add(dlPacketSinkHelper.Install(ueNodes.Get(i)));
         // Enable the tracing of RX packets
-        ueApps.Get(i)->TraceConnectWithoutContext("RxWithAddresses", MakeCallback(&RxTrace));
+        // ueApps.Get(i)->TraceConnectWithoutContext("RxWithAddresses", MakeCallback(&RxTrace));
 
         Ptr<OnOffApplication> streamingServer = CreateObject<OnOffApplication>();
         remoteApps.Add(streamingServer);
@@ -488,7 +485,7 @@ main(int argc, char* argv[])
         streamingServer->SetAttribute("OffTime", PointerValue(offTimeRv));
 
         remoteHost->AddApplication(streamingServer);
-        streamingServer->TraceConnectWithoutContext("TxWithAddresses", MakeCallback(&TxTrace));
+        // streamingServer->TraceConnectWithoutContext("TxWithAddresses", MakeCallback(&TxTrace));
     }
 
     remoteApps.Start(Seconds(2));
@@ -642,8 +639,8 @@ main(int argc, char* argv[])
     }
     // ORAN END
 
-    Config::Connect("/NodeList/*/DeviceList/*/LteEnbRrc/ConnectionEstablished",
-                    MakeCallback(&NotifyConnectionEstablishedEnb));
+    // Config::Connect("/NodeList/*/DeviceList/*/LteEnbRrc/ConnectionEstablished",
+    //                 MakeCallback(&NotifyConnectionEstablishedEnb));
 
     // lteHelper->EnableTraces();
 
@@ -675,29 +672,29 @@ main(int argc, char* argv[])
         std::cout << "REMs created" << std::endl;
     }
 
-    std::ofstream trafficOutFile(s_trafficTraceFile, std::ios_base::trunc);
-    trafficOutFile.close();
-    std::ofstream posOutFile(s_positionTraceFile, std::ios_base::trunc);
-    posOutFile.close();
-    std::ofstream hoOutFile(s_handoverTraceFile, std::ios_base::trunc);
-    hoOutFile.close();
+    // std::ofstream trafficOutFile(s_trafficTraceFile, std::ios_base::trunc);
+    // trafficOutFile.close();
+    // std::ofstream posOutFile(s_positionTraceFile, std::ios_base::trunc);
+    // posOutFile.close();
+    // std::ofstream hoOutFile(s_handoverTraceFile, std::ios_base::trunc);
+    // hoOutFile.close();
 
-    Simulator::Schedule(Seconds(1), &TracePositions, ueNodes);
+    // Simulator::Schedule(Seconds(1), &TracePositions, ueNodes);
 
-    Config::Connect("/NodeList/*/DeviceList/*/LteEnbRrc/HandoverEndOk",
-                    MakeCallback(&NotifyHandoverEndOkEnb));
+    // Config::Connect("/NodeList/*/DeviceList/*/LteEnbRrc/HandoverEndOk",
+    //                 MakeCallback(&NotifyHandoverEndOkEnb));
 
-    FlowMonitorHelper flowHelper;
-    Ptr<FlowMonitor> flowMonitor = flowHelper.InstallAll();
+    // FlowMonitorHelper flowHelper;
+    // Ptr<FlowMonitor> flowMonitor = flowHelper.InstallAll();
 
-    for (Time t = Seconds(2); t < simTime; t += Seconds(1))
-    {
-        Simulator::Schedule(t, &reportAppLoss, nearRtRic->Data());
-    }
+    // for (Time t = Seconds(2); t < simTime; t += Seconds(1))
+    // {
+    //     Simulator::Schedule(t, &reportAppLoss, nearRtRic->Data());
+    // }
+    Simulator::Schedule(simTime-Seconds(0.1), &reportAppLoss, nearRtRic->Data());
 
     Simulator::Stop(simTime);
     Simulator::Run();
-    flowMonitor->SerializeToXmlFile("flowmonitor.xml", false, true);
     Simulator::Destroy();
 
     if (useTrain)
